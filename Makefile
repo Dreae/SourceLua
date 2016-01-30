@@ -197,6 +197,7 @@ all: check
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)vstdlib$(LIB_SUFFIX)
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)tier0$(LIB_SUFFIX)
 	cd lua && $(MAKE) CC="gcc -m32"
+	cd libuv && $(MAKE) CC="gcc -m32"
 	$(MAKE) -f Makefile sourcelua
 	$(MAKE) -f Makefile pack
 
