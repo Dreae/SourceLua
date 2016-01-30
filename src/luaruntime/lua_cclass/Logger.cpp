@@ -5,13 +5,13 @@ Logger::Logger(SourceLua *sl) {
 }
 
 void Logger::info(const char *msg) {
-  this->sl->mm_api->LogMsg(this->sl, "[INFO] %s", msg);
+  g_SMAPI->LogMsg(this->sl, "[INFO] %s", msg);
 }
 
 void Logger::warn(const char *msg) {
-  this->sl->mm_api->LogMsg(this->sl, "[WARN] %s", msg);
+  g_SMAPI->LogMsg(this->sl, "[WARN] %s", msg);
 }
 
 void Logger::error(const char *msg) {
-  this->sl->mm_api->LogMsg(this->sl, "[ERROR] %s", msg);
+  g_SMAPI->LogMsg(this->sl, "[ERROR] %s", msg);
 }

@@ -11,4 +11,6 @@ private:
   SourceLua *sl;
 };
 
+extern EventManager *g_EventManager;
+
 #endif // _INCLUDE_EVENTMANAGER

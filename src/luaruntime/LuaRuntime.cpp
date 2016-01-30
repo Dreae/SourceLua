@@ -23,7 +23,7 @@ int LuaPrint(lua_State *L) {
       lua_pushvalue(L, 1);
       lua_call(L, 1, 1);
     }
-    g_LuaRuntime->sl->mm_api->ConPrintf("%s\n", lua_tostring(L, -1));
+    g_SMAPI->ConPrintf("%s\n", lua_tostring(L, -1));
   }
   return 0;
 }
@@ -33,15 +33,15 @@ void updateLuaPath(lua_State *L) {
   lua_getfield(L, -1, "path");
 
   const char *oldPath = lua_tostring(L, -1);
-  const char *gameDir = g_LuaRuntime->sl->mm_api->GetBaseDir();
+  const char *gameDir = g_SMAPI->GetBaseDir();
   size_t maxlen = strlen(gameDir) + 64;
   char *luaPath = new char[maxlen];
 
-  g_LuaRuntime->sl->mm_api->PathFormat(luaPath, maxlen, "%s/addons/sourcelua/lua/?.lua", gameDir);
+  g_SMAPI->PathFormat(luaPath, maxlen, "%s/addons/sourcelua/lua/?.lua", gameDir);
   maxlen += strlen(oldPath) + 1;
   char *finalPath = new char[maxlen];
 
-  g_LuaRuntime->sl->mm_api->Format(finalPath, maxlen, "%s;%s", oldPath, luaPath);
+  g_SMAPI->Format(finalPath, maxlen, "%s;%s", oldPath, luaPath);
   lua_getglobal(L, "package");
   lua_pushstring(L, finalPath);
   lua_setfield(L, -2, "path");

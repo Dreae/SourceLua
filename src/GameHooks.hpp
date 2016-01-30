@@ -11,4 +11,6 @@ private:
   SourceLua *sl;
 };
 
+extern GameHooks *g_GameHooks;
+
 #endif // _INCLUDE_GAMEHOOKS

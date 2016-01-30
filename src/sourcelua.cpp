@@ -26,17 +26,20 @@ PLUGIN_EXPOSE(SourceLua, g_SourceLua);
 bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	this->mm_api = ismm;
-
+	
 	GET_V_IFACE_ANY(GetServerFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
-	GET_V_IFACE_ANY(GetServerFactory, this->gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
+	GET_V_IFACE_ANY(GetServerFactory, g_iGameClients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
 
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
 
-	this->eventmanager = new EventManager(this);
+	g_EventManager = new EventManager(this);
 
-	this->gamehooks = new GameHooks(this);
-	this->gamehooks->Start();
+	g_GameHooks = new GameHooks(this);
+	g_GameHooks->Start();
+
+	g_LuaRuntime = new LuaRuntime(this);
+	g_LuaRuntime->Init();
+	luaL_dostring(g_LuaRuntime->L, "print(SourceLua.Logger)");
 
 	return true;
 }
@@ -53,12 +56,7 @@ void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax)
 	META_LOG(g_PLAPI, "ServerActivate() called: edictCount = %d, clientMax = %d", edictCount, clientMax);
 }
 
-void SourceLua::AllPluginsLoaded()
-{
-	g_LuaRuntime = new LuaRuntime(this);
-	g_LuaRuntime->Init();
-	luaL_dostring(g_LuaRuntime->L, "print(SourceLua.Logger)");
-}
+void SourceLua::AllPluginsLoaded() { return; }
 
 bool SourceLua::Pause(char *error, size_t maxlen)
 {
