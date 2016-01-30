@@ -197,7 +197,6 @@ all: check
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)vstdlib$(LIB_SUFFIX)
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)tier0$(LIB_SUFFIX)
 	cd lua && $(MAKE) CC="gcc -m32"
-	cd libuv && $(MAKE) CC="gcc -m32"
 	$(MAKE) -f Makefile sourcelua
 	$(MAKE) -f Makefile pack
 
@@ -216,6 +215,7 @@ pack: sourcelua $(OBJ_BIN)
 	mkdir -p $(RELEASE_DIR)/package/addons/sourcelua/bin
 	cp lua/src/libluajit.so $(RELEASE_DIR)/package/addons/sourcelua/bin/libluajit-5.1.so.2
 	cp $(BIN_DIR)/$(BINARY) $(RELEASE_DIR)/package/addons/sourcelua/bin
+	cp -r src/lua $(RELEASE_DIR)/package/addons/sourcelua
 	mkdir -p $(RELEASE_DIR)/package/addons/metamod
 	cp src/sourcelua.vdf $(RELEASE_DIR)/package/addons/metamod
 

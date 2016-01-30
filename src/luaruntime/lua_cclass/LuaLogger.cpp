@@ -28,9 +28,9 @@ static luaL_Reg Logger_metatable[] = {
 };
 
 int luaopen_Logger(lua_State *L, SourceLua *sl) {
-  luaW_register<Logger>(L, "Logger", NULL, Logger_metatable, NULL);
+  luaW_register<Logger>(L, "MMAPILogger", NULL, Logger_metatable, NULL);
   Logger *logger = new Logger(sl);
   luaW_push<Logger>(L, logger);
-  lua_setglobal(L, "Logger");
+  lua_setglobal(L, "MetaLogger");
   return 1;
 }

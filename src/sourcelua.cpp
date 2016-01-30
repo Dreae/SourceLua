@@ -57,8 +57,7 @@ void SourceLua::AllPluginsLoaded()
 {
 	g_LuaRuntime = new LuaRuntime(this);
 	g_LuaRuntime->Init();
-	luaL_dostring(g_LuaRuntime->L, "print('butts')");
-	luaL_dostring(g_LuaRuntime->L, "Logger:info('butts2')");
+	luaL_dostring(g_LuaRuntime->L, "print(SourceLua.Logger)");
 }
 
 bool SourceLua::Pause(char *error, size_t maxlen)

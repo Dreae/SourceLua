@@ -18,12 +18,45 @@ void LuaRuntime::Init() {
 
 int LuaPrint(lua_State *L) {
   if(lua_gettop(L)) {
-    g_LuaRuntime->sl->mm_api->ConPrintf("%s\n", lua_tostring(L, 1));
+    if(!lua_isstring(L, 1)) {
+      lua_getglobal(L, "tostring");
+      lua_pushvalue(L, 1);
+      lua_call(L, 1, 1);
+    }
+    g_LuaRuntime->sl->mm_api->ConPrintf("%s\n", lua_tostring(L, -1));
   }
   return 0;
 }
 
+void updateLuaPath(lua_State *L) {
+  lua_getglobal(L, "package");
+  lua_getfield(L, -1, "path");
+
+  const char *oldPath = lua_tostring(L, -1);
+  const char *gameDir = g_LuaRuntime->sl->mm_api->GetBaseDir();
+  size_t maxlen = strlen(gameDir) + 64;
+  char *luaPath = new char[maxlen];
+
+  g_LuaRuntime->sl->mm_api->PathFormat(luaPath, maxlen, "%s/addons/sourcelua/lua/?.lua", gameDir);
+  maxlen += strlen(oldPath) + 1;
+  char *finalPath = new char[maxlen];
+
+  g_LuaRuntime->sl->mm_api->Format(finalPath, maxlen, "%s;%s", oldPath, luaPath);
+  lua_getglobal(L, "package");
+  lua_pushstring(L, finalPath);
+  lua_setfield(L, -2, "path");
+  lua_remove(L, -1);
+}
+
 void LuaRuntime::register_std_lib() {
-  luaopen_Logger(L, this->sl);
+  updateLuaPath(L);
+
   lua_register(L, "print", LuaPrint);
+
+  luaopen_Logger(L, this->sl);
+
+  lua_getglobal(L, "require");
+  lua_pushstring(L, "sourcelua");
+  lua_call(L, 1, 1);
+  lua_setglobal(L, "SourceLua");
 }
