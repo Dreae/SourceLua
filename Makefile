@@ -14,7 +14,7 @@ HL2SDK_OB_VALVE = ../hl2sdk-ob-valve
 HL2SDK_L4D = ../hl2sdk-l4d
 HL2SDK_L4D2 = ../hl2sdk-l4d2
 HL2SDK_CSGO = ../hl2sdk-csgo
-MMSOURCE19 = ../metamod-source
+MMSOURCE19 = metamod-source
 
 #####################################
 ### EDIT BELOW FOR OTHER PROJECTS ###
@@ -192,7 +192,7 @@ all: check
 	mkdir -p $(BIN_DIR)
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)vstdlib$(LIB_SUFFIX)
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)tier0$(LIB_SUFFIX)
-	cd lua && make
+	cd lua && $(MAKE) CC="gcc -m32"
 	$(MAKE) -f Makefile sourcelua
 
 check:
