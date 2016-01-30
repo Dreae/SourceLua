@@ -23,6 +23,8 @@
 
 #define SOURCELUA_VERSION "0.0.2"
 
+class EventManager;
+class GameHooks;
 class SourceLua : public ISmmPlugin
 {
 public:
@@ -41,11 +43,17 @@ public:
 	const char *GetDate();
 	const char *GetLogTag();
 	ISmmAPI *mm_api;
+	GameHooks *gamehooks;
+	EventManager *eventmanager;
+	IServerGameClients *gameclients;
 };
 
 void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax);
 
 extern SourceLua g_SourceLua;
+
+#include "GameHooks.hpp"
+#include "EventManager.hpp"
 
 PLUGIN_GLOBALVARS();
 

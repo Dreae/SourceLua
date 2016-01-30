@@ -28,14 +28,15 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 	PLUGIN_SAVEVARS();
 	this->mm_api = ismm;
 
-	/* Make sure we build on MM:S 1.4 */
-#if defined METAMOD_PLAPI_VERSION
 	GET_V_IFACE_ANY(GetServerFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
-#else
-	GET_V_IFACE_ANY(serverFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
-#endif
+	GET_V_IFACE_ANY(GetServerFactory, this->gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
 
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
+
+	this->eventmanager = new EventManager(this);
+
+	this->gamehooks = new GameHooks(this);
+	this->gamehooks->Start();
 
 	return true;
 }
