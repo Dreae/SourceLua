@@ -4,6 +4,3 @@
 [submodule "metamod-source"]
 	path = metamod-source
 	url = git@github.com:alliedmodders/metamod-source.git
-[submodule "libuv"]
-	path = libuv
-	url = git@github.com:libuv/libuv.git
