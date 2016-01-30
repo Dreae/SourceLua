@@ -12,8 +12,8 @@
  * This stub plugin is public domain.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_STUB_PLUGIN_H_
-#define _INCLUDE_METAMOD_SOURCE_STUB_PLUGIN_H_
+#ifndef _INCLUDE_SOURCELUA
+#define _INCLUDE_SOURCELUA
 
 #include <ISmmPlugin.h>
 
@@ -40,7 +40,6 @@ public:
 	const char *GetVersion();
 	const char *GetDate();
 	const char *GetLogTag();
-private:
 	ISmmAPI *mm_api;
 };
 
@@ -50,4 +49,4 @@ extern SourceLua g_SourceLua;
 
 PLUGIN_GLOBALVARS();
 
-#endif //_INCLUDE_METAMOD_SOURCE_STUB_PLUGIN_H_
+#endif //_INCLUDE_SOURCELUA

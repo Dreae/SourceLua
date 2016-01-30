@@ -1,14 +1,9 @@
-#include "LuaRuntime.hpp"
-#include "sourcelua.hpp"
+#include "luaruntime/LuaRuntime.hpp"
+#include "luaruntime/lua_cclass/LuaLogger.hpp"
 
-LuaRuntime::LuaRuntime() {
+LuaRuntime::LuaRuntime(SourceLua *sl) {
   L = NULL;
-  this->ismm = NULL;
-}
-
-LuaRuntime::LuaRuntime(ISmmAPI *ismm) {
-  L = NULL;
-  this->ismm = ismm;
+  this->sl = sl;
 }
 
 void LuaRuntime::Init() {
@@ -22,14 +17,13 @@ void LuaRuntime::Init() {
 }
 
 int LuaPrint(lua_State *L) {
-  g_LuaRuntime.ismm->ConPrint("LuaPrint");
+  if(lua_gettop(L)) {
+    g_LuaRuntime->sl->mm_api->ConPrintf("%s\n", lua_tostring(L, 1));
+  }
+  return 0;
 }
 
 void LuaRuntime::register_std_lib() {
-  lua_newtable(L);
-  lua_pushstring(L, SOURCELUA_VERSION);
-  lua_setfield(L, -2, "version");
-  lua_setglobal(L, "SourceLua");
-
+  luaopen_Logger(L, this->sl);
   lua_register(L, "print", LuaPrint);
 }

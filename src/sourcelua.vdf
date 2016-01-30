@@ -1,5 +1,5 @@
 "Metamod Plugin"
 {
 	"alias"		"sourcelua"
-	"file"		"addons/sourcelua/sourcelua"
+	"file"		"addons/sourcelua/bin/sourcelua"
 }

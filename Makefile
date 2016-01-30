@@ -20,8 +20,9 @@ MMSOURCE19 = metamod-source
 ### EDIT BELOW FOR OTHER PROJECTS ###
 #####################################
 
+vpath %.cpp $(shell find src -type d -printf "%p:")
 PROJECT = sourcelua
-OBJECTS = sourcelua.cpp LuaRuntime.cpp
+OBJECTS = $(shell find src -type f -name *.cpp -printf "%f ")
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -32,6 +33,7 @@ GCC4_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden -std=c++11
 DEBUG_FLAGS = -g -ggdb3 -D_DEBUG
 CPP = gcc
 CPP_OSX = clang
+INCLUDE = -Ilua/src -Llua/src -lluajit -Isrc
 
 ##########################
 ### SDK CONFIGURATIONS ###
@@ -116,7 +118,7 @@ endif
 
 CFLAGS += -DSE_EPISODEONE=1 -DSE_DARKMESSIAH=2 -DSE_ORANGEBOX=3 -DSE_BLOODYGOODTIME=4 -DSE_EYE=5 \
 	-DSE_CSS=6 -DSE_ORANGEBOXVALVE=7 -DSE_LEFT4DEAD=8 -DSE_LEFT4DEAD2=9 -DSE_ALIENSWARM=10 \
-	-DSE_PORTAL2=11 -DSE_CSGO=12 -Ilua/src -Llua/src -lluajit
+	-DSE_PORTAL2=11 -DSE_CSGO=12
 
 LINK += $(HL2LIB)/tier1_i486.a $(LIB_PREFIX)vstdlib$(LIB_SUFFIX) $(LIB_PREFIX)tier0$(LIB_SUFFIX)
 
@@ -134,10 +136,12 @@ INCLUDE += -I. -I.. -I$(HL2PUB) -I$(HL2PUB)/engine -I$(HL2PUB)/mathlib -I$(HL2PU
 BINARY = $(PROJECT).$(LIB_EXT)
 
 ifeq "$(DEBUG)" "true"
-	BIN_DIR = Debug.$(ENGINE)
+	RELEASE_DIR = Debug.$(ENGINE)
+	BIN_DIR = $(RELEASE_DIR)/bin
 	CFLAGS += $(DEBUG_FLAGS)
 else
-	BIN_DIR = Release.$(ENGINE)
+	RELEASE_DIR = Release.$(ENGINE)
+	BIN_DIR = $(RELEASE_DIR)/bin
 	CFLAGS += $(OPT_FLAGS)
 endif
 
@@ -185,7 +189,7 @@ endif
 
 OBJ_BIN := $(OBJECTS:%.cpp=$(BIN_DIR)/%.o)
 
-$(BIN_DIR)/%.o: src/%.cpp
+$(BIN_DIR)/%.o: %.cpp
 	$(CPP) $(INCLUDE) $(CFLAGS) -o $@ -c $<
 
 all: check
@@ -194,6 +198,7 @@ all: check
 	ln -sf $(HL2LIB)/$(LIB_PREFIX)tier0$(LIB_SUFFIX)
 	cd lua && $(MAKE) CC="gcc -m32"
 	$(MAKE) -f Makefile sourcelua
+	$(MAKE) -f Makefile pack
 
 check:
 	if [ "$(ENGSET)" = "false" ]; then \
@@ -205,7 +210,13 @@ check:
 sourcelua: check $(OBJ_BIN)
 	$(CPP) $(INCLUDE) -m32 $(OBJ_BIN) $(LINK) -ldl -lm -o $(BIN_DIR)/$(BINARY)
 	chrpath -r '$$ORIGIN' $(BIN_DIR)/$(BINARY)
-	cp lua/src/libluajit.so $(BIN_DIR)/libluajit-5.1.so.2
+
+pack: sourcelua $(OBJ_BIN)
+	mkdir -p $(RELEASE_DIR)/package/addons/sourcelua/bin
+	cp lua/src/libluajit.so $(RELEASE_DIR)/package/addons/sourcelua/bin/libluajit-5.1.so.2
+	cp $(BIN_DIR)/$(BINARY) $(RELEASE_DIR)/package/addons/sourcelua/bin
+	mkdir -p $(RELEASE_DIR)/package/addons/metamod
+	cp src/sourcelua.vdf $(RELEASE_DIR)/package/addons/metamod
 
 default: all
 

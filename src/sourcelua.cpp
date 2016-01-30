@@ -14,13 +14,13 @@
 
 #include <stdio.h>
 #include "sourcelua.hpp"
-#include "LuaRuntime.hpp"
+#include "luaruntime/LuaRuntime.hpp"
 
 SH_DECL_HOOK3_void(IServerGameDLL, ServerActivate, SH_NOATTRIB, 0, edict_t *, int, int);
 
 SourceLua g_SourceLua;
 IServerGameDLL *server = NULL;
-LuaRuntime g_LuaRuntime;
+LuaRuntime *g_LuaRuntime;
 
 PLUGIN_EXPOSE(SourceLua, g_SourceLua);
 bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -54,9 +54,10 @@ void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax)
 
 void SourceLua::AllPluginsLoaded()
 {
-	g_LuaRuntime = LuaRuntime(this->mm_api);
-	g_LuaRuntime.Init();
-	luaL_dostring(g_LuaRuntime.L, "print('butts')");
+	g_LuaRuntime = new LuaRuntime(this);
+	g_LuaRuntime->Init();
+	luaL_dostring(g_LuaRuntime->L, "print('butts')");
+	luaL_dostring(g_LuaRuntime->L, "Logger:info('butts2')");
 }
 
 bool SourceLua::Pause(char *error, size_t maxlen)
