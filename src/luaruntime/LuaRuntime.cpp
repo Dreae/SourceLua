@@ -4,6 +4,10 @@
 LuaRuntime::LuaRuntime(SourceLua *sl) {
   L = NULL;
   this->sl = sl;
+  this->basePath = new char[PATH_MAX];
+
+  const char *gameDir = g_SMAPI->GetBaseDir();
+  g_SMAPI->PathFormat(this->basePath, PATH_MAX, "%s/addons/sourcelua/lua/?.lua", gameDir);
 }
 
 void LuaRuntime::Init() {
@@ -13,6 +17,13 @@ void LuaRuntime::Init() {
   lua_gc(L, LUA_GCRESTART, 0);
 
   luaJIT_setmode(L, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON);
+
+  // Update lua require path
+  lua_getglobal(L, "package");
+  lua_pushstring(L, this->basePath);
+  lua_setfield(L, -2, "path");
+  lua_remove(L, -1);
+
   this->register_std_lib();
 }
 
@@ -28,29 +39,7 @@ int LuaPrint(lua_State *L) {
   return 0;
 }
 
-void updateLuaPath(lua_State *L) {
-  lua_getglobal(L, "package");
-  lua_getfield(L, -1, "path");
-
-  const char *oldPath = lua_tostring(L, -1);
-  const char *gameDir = g_SMAPI->GetBaseDir();
-  size_t maxlen = strlen(gameDir) + 64;
-  char *luaPath = new char[maxlen];
-
-  g_SMAPI->PathFormat(luaPath, maxlen, "%s/addons/sourcelua/lua/?.lua", gameDir);
-  maxlen += strlen(oldPath) + 1;
-  char *finalPath = new char[maxlen];
-
-  g_SMAPI->Format(finalPath, maxlen, "%s;%s", oldPath, luaPath);
-  lua_getglobal(L, "package");
-  lua_pushstring(L, finalPath);
-  lua_setfield(L, -2, "path");
-  lua_remove(L, -1);
-}
-
 void LuaRuntime::register_std_lib() {
-  updateLuaPath(L);
-
   lua_register(L, "print", LuaPrint);
 
   luaopen_Logger(L, this->sl);
@@ -59,4 +48,77 @@ void LuaRuntime::register_std_lib() {
   lua_pushstring(L, "sourcelua");
   lua_call(L, 1, 1);
   lua_setglobal(L, "SourceLua");
+
+  //Save gameDir
+  const char* gameDir = g_SMAPI->GetBaseDir();
+  lua_getglobal(L, "SourceLua");
+  lua_pushstring(L, gameDir);
+  lua_setfield(L, -2, "BaseDir");
+
+  char *slDir = new char[PATH_MAX];
+  g_SMAPI->PathFormat(slDir, PATH_MAX, "%s/addons/sourcelua", gameDir); // TODO: Detect proper directory
+  lua_pushstring(L, slDir);
+  lua_setfield(L, -2, "SourceLuaDir");
+}
+
+void LuaRuntime::LoadAddons() {
+  FileFindHandle_t findHandle;
+  const char *filename = g_iFileSystem->FindFirstEx("addons/sourcelua/addons/*.*", "MOD", &findHandle);
+  while(filename) {
+    char *addonDir = new char[PATH_MAX];
+    char *indexFile = new char[PATH_MAX];
+    g_SMAPI->PathFormat(addonDir, PATH_MAX, "addons/sourcelua/addons/%s", filename);
+    g_SMAPI->PathFormat(indexFile, PATH_MAX, "%s/index.lua", addonDir);
+
+    if(g_iFileSystem->FileExists(indexFile)) {
+      this->LoadAddon((const char*)addonDir);
+    }
+
+    filename = g_iFileSystem->FindNext(findHandle);
+  }
+}
+
+void LuaRuntime::LoadAddon(const char *addonDir) {
+  this->lua_chroot(addonDir, [this]() -> void {
+    lua_getglobal(this->L, "require");
+    lua_pushstring(this->L, "index");
+    if(lua_pcall(L, 1, 1, 0)) {
+      META_LOG(g_PLAPI, "Error loading addon: %s", lua_tostring(this->L, -1));
+    }
+  });
+}
+
+void LuaRuntime::lua_chroot(const char *addonDir, std::function<void(void)> f) {
+  char *path = new char[PATH_MAX * 2];
+  g_SMAPI->PathFormat(path, PATH_MAX * 2, "%s;%s/%s/?.lua", this->basePath, g_SMAPI->GetBaseDir(), addonDir);
+  lua_getglobal(this->L, "package");
+  lua_pushstring(this->L, path);
+  lua_setfield(this->L, -2, "path");
+  lua_remove(this->L, -1);
+
+  f();
+
+  lua_getglobal(this->L, "package");
+  lua_pushstring(this->L, this->basePath);
+  lua_setfield(this->L, -2, "path");
+  lua_remove(this->L, -1);
+}
+
+void LuaRuntime::FireClientCommand(int client, const CCommand args) {
+  lua_getglobal(this->L, "SourceLua");
+  lua_getfield(this->L, -1, "Events");
+  lua_remove(this->L, -2);
+
+  lua_getfield(this->L, -1, "FireClientCommand");
+  lua_remove(this->L, -2);
+
+  lua_pushinteger(this->L, client);
+  lua_createtable(this->L, args.ArgC(), 0);
+  for(int i = 1; i <= args.ArgC(); i++) {
+    lua_pushstring(this->L, args.Arg(i - 1));
+    lua_rawseti(this->L, -2, i);
+  }
+  if(lua_pcall(this->L, 2, 1, 0)) {
+    META_LOG(g_PLAPI, "Error firing client command: %s", lua_tostring(this->L, -1));
+  }
 }

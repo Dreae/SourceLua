@@ -1,4 +1,5 @@
 #include "EventManager.hpp"
+#include "luaruntime/LuaRuntime.hpp"
 
 EventManager *g_EventManager;
 
@@ -7,5 +8,9 @@ EventManager::EventManager(SourceLua *sl) {
 }
 
 void EventManager::Hook_ClientCommand(edict_t *pEntity, const CCommand &args) {
-  META_LOG(g_PLAPI, "Got client command %s", args.Arg(0));
+  if(!pEntity || pEntity->IsFree()) {
+    return;
+  }
+
+  g_LuaRuntime->FireClientCommand(g_Engine->IndexOfEdict(pEntity), args);
 }

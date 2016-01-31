@@ -15,7 +15,8 @@
 #ifndef _INCLUDE_SOURCELUA
 #define _INCLUDE_SOURCELUA
 
-#include <ISmmPlugin.h>
+#include "wrapper.hpp"
+#include "filesystem.h"
 
 #if defined WIN32 && !defined snprintf
 #define snprintf _snprintf
@@ -46,6 +47,9 @@ void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax);
 
 extern SourceLua g_SourceLua;
 extern IServerGameClients *g_iGameClients;
+extern IFileSystem *g_iFileSystem;
+extern IVEngineServer *g_Engine;
+extern IPlayerInfoManager *g_iPlayerInfo;
 
 #include "GameHooks.hpp"
 #include "EventManager.hpp"

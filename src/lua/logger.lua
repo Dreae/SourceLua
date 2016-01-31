@@ -2,7 +2,7 @@ Logger = {}
 
 function Logger:new(file)
   newObj = {
-    logFile = io.open(file, 'w')
+    logFile = io.open(SourceLua.BaseDir .. "/" .. file, 'w')
   }
   newObj.logFile:setvbuf("line")
 

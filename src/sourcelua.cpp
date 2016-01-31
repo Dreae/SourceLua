@@ -22,13 +22,22 @@ SourceLua g_SourceLua;
 IServerGameDLL *server = NULL;
 LuaRuntime *g_LuaRuntime;
 
+IServerGameClients *g_iGameClients;
+IFileSystem *g_iFileSystem;
+IVEngineServer *g_Engine;
+IPlayerInfoManager *g_iPlayerInfo;
+
 PLUGIN_EXPOSE(SourceLua, g_SourceLua);
 bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
-	
+
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_Engine, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
+	GET_V_IFACE_CURRENT(GetServerFactory, g_iPlayerInfo, IPlayerInfoManager, INTERFACEVERSION_PLAYERINFOMANAGER);
+
 	GET_V_IFACE_ANY(GetServerFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
 	GET_V_IFACE_ANY(GetServerFactory, g_iGameClients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
+	GET_V_IFACE_ANY(GetFileSystemFactory, g_iFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
 
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
 
@@ -39,7 +48,6 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 
 	g_LuaRuntime = new LuaRuntime(this);
 	g_LuaRuntime->Init();
-	luaL_dostring(g_LuaRuntime->L, "print(SourceLua.Logger)");
 
 	return true;
 }
@@ -56,7 +64,9 @@ void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax)
 	META_LOG(g_PLAPI, "ServerActivate() called: edictCount = %d, clientMax = %d", edictCount, clientMax);
 }
 
-void SourceLua::AllPluginsLoaded() { return; }
+void SourceLua::AllPluginsLoaded() {
+ 	g_LuaRuntime->LoadAddons();
+}
 
 bool SourceLua::Pause(char *error, size_t maxlen)
 {
