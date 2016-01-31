@@ -24,7 +24,7 @@
 
 #define SOURCELUA_VERSION "0.0.2"
 
-class SourceLua : public ISmmPlugin
+class SourceLua : public ISmmPlugin, public IMetamodListener
 {
 public:
 	bool Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late);
@@ -32,6 +32,8 @@ public:
 	bool Pause(char *error, size_t maxlen);
 	bool Unpause(char *error, size_t maxlen);
 	void AllPluginsLoaded();
+public: //IMetamodListener stuff
+	void OnVSPListening(IServerPluginCallbacks *iface);
 public:
 	const char *GetAuthor();
 	const char *GetName();
@@ -50,6 +52,8 @@ extern IServerGameClients *g_iGameClients;
 extern IFileSystem *g_iFileSystem;
 extern IVEngineServer *g_Engine;
 extern IPlayerInfoManager *g_iPlayerInfo;
+extern IServerPluginHelpers *g_iPluginHelpers;
+extern IServerPluginCallbacks *vsp_callbacks;
 
 #include "GameHooks.hpp"
 #include "EventManager.hpp"
