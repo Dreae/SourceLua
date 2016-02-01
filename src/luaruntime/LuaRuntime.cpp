@@ -1,17 +1,17 @@
 #include "luaruntime/LuaRuntime.hpp"
-#include "luaruntime/lua_cclass/LuaLogger.hpp"
+#include "luaruntime/lualibs/Server.hpp"
 
-LuaRuntime::LuaRuntime(SourceLua *sl) {
-  L = NULL;
-  this->sl = sl;
+LuaRuntime g_LuaRuntime;
+
+LuaRuntime::LuaRuntime() {
+  L = luaL_newstate();
   this->basePath = new char[PATH_MAX];
-
-  const char *gameDir = g_SMAPI->GetBaseDir();
-  g_SMAPI->PathFormat(this->basePath, PATH_MAX, "%s/addons/sourcelua/lua/?.lua", gameDir);
 }
 
-void LuaRuntime::Init() {
-  L = luaL_newstate();
+void LuaRuntime::OnPluginStart() {
+  const char *gameDir = g_SMAPI->GetBaseDir();
+  g_SMAPI->PathFormat(this->basePath, PATH_MAX, "%s/addons/sourcelua/lua/?.lua", gameDir);
+
   lua_gc(L, LUA_GCSTOP, 0);
   luaL_openlibs(L);
   lua_gc(L, LUA_GCRESTART, 0);
@@ -42,8 +42,6 @@ int LuaPrint(lua_State *L) {
 void LuaRuntime::register_std_lib() {
   lua_register(L, "print", LuaPrint);
 
-  luaopen_Logger(L, this->sl);
-
   lua_getglobal(L, "require");
   lua_pushstring(L, "sourcelua");
   lua_call(L, 1, 1);
@@ -59,6 +57,8 @@ void LuaRuntime::register_std_lib() {
   g_SMAPI->PathFormat(slDir, PATH_MAX, "%s/addons/sourcelua", gameDir); // TODO: Detect proper directory
   lua_pushstring(L, slDir);
   lua_setfield(L, -2, "SourceLuaDir");
+
+  lua_register_Server(L);
 }
 
 void LuaRuntime::LoadAddons() {

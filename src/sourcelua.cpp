@@ -14,13 +14,14 @@
 
 #include <stdio.h>
 #include "sourcelua.hpp"
+#include "EventManager.hpp"
 #include "luaruntime/LuaRuntime.hpp"
 
 SH_DECL_HOOK3_void(IServerGameDLL, ServerActivate, SH_NOATTRIB, 0, edict_t *, int, int);
 
 SourceLua g_SourceLua;
 IServerGameDLL *server = NULL;
-LuaRuntime *g_LuaRuntime;
+SourceLuaBase *SourceLuaBase::head = NULL;
 
 IServerGameClients *g_iGameClients;
 IFileSystem *g_iFileSystem;
@@ -51,13 +52,11 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
 
-	g_EventManager = new EventManager(this);
-
-	g_GameHooks = new GameHooks(this);
-	g_GameHooks->Start();
-
-	g_LuaRuntime = new LuaRuntime(this);
-	g_LuaRuntime->Init();
+	SourceLuaBase *pLoader = SourceLuaBase::head;
+	while(pLoader) {
+		pLoader->OnPluginStart();
+		pLoader = pLoader->pLoaderNext;
+	}
 
 	return true;
 }
@@ -79,7 +78,7 @@ void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax)
 }
 
 void SourceLua::AllPluginsLoaded() {
- 	g_LuaRuntime->LoadAddons();
+ 	g_LuaRuntime.LoadAddons();
 }
 
 bool SourceLua::Pause(char *error, size_t maxlen)

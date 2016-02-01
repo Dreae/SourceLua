@@ -3,14 +3,12 @@
 
 #include "sourcelua.hpp"
 
-class EventManager {
+class EventManager : public SourceLuaBase {
 public:
-  EventManager(SourceLua *sl);
+  EventManager() { };
 	void Hook_ClientCommand(edict_t *pEntity, const CCommand &args);
-private:
-  SourceLua *sl;
 };
 
-extern EventManager *g_EventManager;
+extern EventManager g_EventManager;
 
 #endif // _INCLUDE_EVENTMANAGER

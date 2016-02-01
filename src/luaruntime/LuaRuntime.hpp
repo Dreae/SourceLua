@@ -6,21 +6,23 @@
 #include "sourcelua.hpp"
 #include <functional>
 
-class LuaRuntime {
+class LuaRuntime : public SourceLuaBase {
 public:
-  LuaRuntime(SourceLua *sl);
+  LuaRuntime();
   void Init();
   void LoadAddons();
   void LoadAddon(const char *addonDir);
   void FireClientCommand(int client, const CCommand args);
   lua_State *L;
-  SourceLua *sl;
+
+public:
+  void OnPluginStart();
 private:
   void register_std_lib();
   void lua_chroot(const char *root, std::function<void(void)>);
   char *basePath;
 };
 
-extern LuaRuntime *g_LuaRuntime;
+extern LuaRuntime g_LuaRuntime;
 
 #endif //_INCLUDE_LUARUNTIME

@@ -45,6 +45,18 @@ public:
 	const char *GetLogTag();
 };
 
+class SourceLuaBase {
+public:
+	SourceLuaBase() {
+		pLoaderNext = SourceLuaBase::head;
+		SourceLuaBase::head = this;
+	}
+	virtual void OnPluginStart() { }
+public:
+	SourceLuaBase *pLoaderNext;
+	static SourceLuaBase *head;
+};
+
 void Hook_ServerActivate(edict_t *pEdictList, int edictCount, int clientMax);
 
 extern SourceLua g_SourceLua;
@@ -54,9 +66,6 @@ extern IVEngineServer *g_Engine;
 extern IPlayerInfoManager *g_iPlayerInfo;
 extern IServerPluginHelpers *g_iPluginHelpers;
 extern IServerPluginCallbacks *vsp_callbacks;
-
-#include "GameHooks.hpp"
-#include "EventManager.hpp"
 
 PLUGIN_GLOBALVARS();
 

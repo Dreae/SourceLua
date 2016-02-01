@@ -8,7 +8,10 @@ end
 
 function events.FireClientCommand(client, args)
   for idx = 1, table.getn(events.client_command) do
-    events.client_command[idx](client, args)
+    success, msg = pcall(events.client_command[idx], client, args)
+    if not success then
+      print(msg)
+    end
   end
 end
 

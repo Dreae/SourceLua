@@ -3,14 +3,14 @@
 #include <ISmmPlugin.h>
 #include "sourcelua.hpp"
 
-class GameHooks {
+class GameHooks : public SourceLuaBase {
 public:
-  GameHooks(SourceLua *sl);
-  void Start();
-private:
-  SourceLua *sl;
+  GameHooks() { };
+
+public:
+  void OnPluginStart();
 };
 
-extern GameHooks *g_GameHooks;
+extern GameHooks g_GameHooks;
 
 #endif // _INCLUDE_GAMEHOOKS
