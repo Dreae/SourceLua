@@ -1,0 +1,131 @@
+# -*- Python -*-
+# vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
+
+import os
+import fnmatch
+
+
+class SDK(object):
+  def __init__(self, sdk, ext, aDef, name, dir):
+    self.folder = 'hl2sdk-' + dir
+    self.envvar = sdk
+    self.ext = ext
+    self.code = aDef
+    self.define = name
+    self.name = dir
+    self.path = os.path.join(builder.sourcePath, '../', self.folder)
+
+
+PossibleSDKs = {
+    'css':  SDK('HL2SDKCSS', '2.css', '6', 'CSS', 'css')
+}
+
+builder.DetectCxx()
+program = builder.cxx.Library('sourcelua')
+
+def detectSdks():
+    for sdk_name in PossibleSDKs:
+        sdk = PossibleSDKs[sdk_name]
+        paths = [
+            ['public'],
+            ['public', 'engine'],
+            ['public', 'mathlib'],
+            ['public', 'vstdlib'],
+            ['public', 'tier0'],
+            ['public', 'tier1']
+        ]
+
+        if sdk.name == 'episode1' or sdk.name == 'darkm':
+            paths.append(['public', 'dlls'])
+            paths.append(['game_shared'])
+        else:
+            paths.append(['public', 'game', 'server'])
+            paths.append(['public', 'toolframework'])
+            paths.append(['game', 'shared'])
+            paths.append(['common'])
+
+            program.compiler.defines += ['SOURCE_ENGINE=' + sdk.code]
+        if sdk.name in ['blade', 'insurgency', 'csgo', 'dota']:
+            program.compiler.defines += ['NETWORK_VARS_ENABLED']
+
+        if sdk.name in ['css', 'hl2dm', 'dods', 'sdk2013', 'bms', 'tf2', 'l4d', 'nucleardawn', 'l4d2', 'dota']:
+            program.compiler.defines += ['NO_HOOK_MALLOC', 'NO_MALLOC_OVERRIDE']
+
+        for path in paths:
+            program.compiler.includes += [os.path.join(sdk.path, *path)]
+
+        lib_folder = os.path.join(sdk.path, 'lib', 'linux')
+        program.compiler.postlink += [
+            program.compiler.Dep(os.path.join(lib_folder, 'tier1_i486.a')),
+            program.compiler.Dep(os.path.join(lib_folder, 'mathlib_i486.a'))
+        ]
+
+        dynamic_libs = []
+        if sdk.name in ['css', 'hl2dm', 'dods', 'tf2', 'sdk2013', 'bms', 'nucleardawn', 'l4d2', 'insurgency']:
+            dynamic_libs = ['libtier0_srv.so', 'libvstdlib_srv.so']
+        for library in dynamic_libs:
+            source_path = os.path.join(lib_folder, library)
+            output_path = os.path.join(program.localFolder, library)
+
+            def make_linker(source_path, output_path):
+                def link(context, binary):
+                    cmd_node, (output,) = context.AddSymlink(source_path, output_path)
+                    return output
+                return link
+
+            linker = make_linker(source_path, output_path)
+            program.compiler.linkflags[0:0] = [program.compiler.Dep(library, linker)]
+
+detectSdks()
+program.compiler.defines += [
+    'stricmp=strcasecmp',
+    '_stricmp=strcasecmp',
+    '_snprintf=snprintf',
+    '_vsnprintf=vsnprintf',
+    'HAVE_STDINT_H',
+    'COMPILER_GCC',
+    '_LINUX',
+    'POSIX',
+    'GNUC'
+]
+program.compiler.cflags += [
+    '-pipe',
+    '-fno-strict-aliasing',
+    '-fvisibility=hidden',
+    '-Wall',
+    '-msse',
+    '-m32',
+    '-fPIC',
+    '-fno-rtti'
+]
+program.compiler.cxxflags += [
+    '-std=c++11',
+    '-fno-exceptions',
+    '-Wno-non-virtual-dtor',
+    '-Wno-overloaded-virtual',
+    '-fvisibility-inlines-hidden'
+]
+program.compiler.linkflags += [
+    program.compiler.Dep(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so')),
+    '-Wl,-rpath=$ORIGIN'
+]
+
+program.compiler.includes += [
+    os.path.join(builder.sourcePath, 'lua', 'src'),
+    os.path.join(builder.sourcePath, 'src'),
+    os.path.join(builder.sourcePath, 'metamod-source', 'core'),
+    os.path.join(builder.sourcePath, 'metamod-source', 'core', 'sourcehook')
+]
+
+program.compiler.linkflags += ['-m32']
+if builder.options.debug:
+    program.compiler.cflags += ['-g -ggdb']
+
+for root, dirnames, filenames in os.walk(os.path.join(builder.sourcePath, 'src')):
+    for filename in fnmatch.filter(filenames, '*.cpp'):
+        program.sources.append(os.path.join(root, filename))
+output = builder.Add(program)
+
+dist = builder.AddFolder('package')
+builder.AddCopy(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so'), os.path.join('package', 'libluajit-5.1.so.2'))
+builder.AddCopy(output.binary, dist)
