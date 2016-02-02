@@ -16,6 +16,7 @@
 #include "sourcelua.hpp"
 #include "EventManager.hpp"
 #include "luaruntime/LuaRuntime.hpp"
+#include "convar.h"
 
 SH_DECL_HOOK3_void(IServerGameDLL, ServerActivate, SH_NOATTRIB, 0, edict_t *, int, int);
 
@@ -48,8 +49,7 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 		ismm->AddListener(this, this);
 		ismm->EnableVSPListener();
 	}
-
-
+	
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
 
 	SourceLuaBase *pLoader = SourceLuaBase::head;

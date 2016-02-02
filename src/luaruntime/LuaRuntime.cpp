@@ -71,7 +71,7 @@ void LuaRuntime::LoadAddons() {
     g_SMAPI->PathFormat(indexFile, PATH_MAX, "%s/index.lua", addonDir);
 
     if(g_iFileSystem->FileExists(indexFile)) {
-      this->LoadAddon((const char*)addonDir);
+      this->LoadAddon(addonDir);
     }
 
     filename = g_iFileSystem->FindNext(findHandle);

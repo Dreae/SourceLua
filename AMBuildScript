@@ -119,7 +119,7 @@ program.compiler.includes += [
 
 program.compiler.linkflags += ['-m32']
 if builder.options.debug:
-    program.compiler.cflags += ['-g -ggdb']
+    program.compiler.cflags += ['-g', '-ggdb3']
 
 for root, dirnames, filenames in os.walk(os.path.join(builder.sourcePath, 'src')):
     for filename in fnmatch.filter(filenames, '*.cpp'):
