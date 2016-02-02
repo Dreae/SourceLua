@@ -32,6 +32,12 @@ IServerPluginHelpers *g_iPluginHelpers;
 
 IServerPluginCallbacks *vsp_callbacks;
 
+const char *g_plPath;
+
+DLL_EXPORT METAMOD_PLUGIN *CreateInterface_MMS(const MetamodVersionInfo *mvi, const MetamodLoaderInfo *mli) {
+	g_plPath = mli->pl_path;
+	return (METAMOD_PLUGIN *)&g_SourceLua;
+}
 PLUGIN_EXPOSE(SourceLua, g_SourceLua);
 bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
@@ -49,7 +55,7 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 		ismm->AddListener(this, this);
 		ismm->EnableVSPListener();
 	}
-	
+
 	SH_ADD_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
 
 	SourceLuaBase *pLoader = SourceLuaBase::head;

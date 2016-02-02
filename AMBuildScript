@@ -17,15 +17,24 @@ class SDK(object):
 
 
 PossibleSDKs = {
-    'css':  SDK('HL2SDKCSS', '2.css', '6', 'CSS', 'css')
+    'css':  SDK('HL2SDKCSS', '2.css', '6', 'CSS', 'css'),
+    'csgo': SDK('HL2SDKCSGO', '2.csgo', '20', 'CSGO', 'csgo'),
 }
 
 builder.DetectCxx()
-program = builder.cxx.Library('sourcelua')
 
-def detectSdks():
-    for sdk_name in PossibleSDKs:
-        sdk = PossibleSDKs[sdk_name]
+class BuildConfig(object):
+    def __init__(self, sdk):
+        self.sdk = sdk
+        self.binary = builder.cxx.Library('sourcelua.' + sdk.ext)
+        self.sources = []
+        for root, dirnames, filenames in os.walk(os.path.join(builder.sourcePath, 'src')):
+            for filename in fnmatch.filter(filenames, '*.cpp'):
+                self.sources.append(os.path.join(root, filename))
+
+    def config_for_sdk(self):
+        sdk = self.sdk
+        program = self.binary
         paths = [
             ['public'],
             ['public', 'engine'],
@@ -43,6 +52,12 @@ def detectSdks():
             paths.append(['public', 'toolframework'])
             paths.append(['game', 'shared'])
             paths.append(['common'])
+            if sdk.name == 'csgo':
+                paths += [
+                    ['common', 'protobuf-2.5.0', 'src'],
+                    ['public', 'engine', 'protobuf'],
+                    ['public', 'game', 'shared', 'csgo', 'protobuf']
+                ]
 
             program.compiler.defines += ['SOURCE_ENGINE=' + sdk.code]
         if sdk.name in ['blade', 'insurgency', 'csgo', 'dota']:
@@ -59,10 +74,16 @@ def detectSdks():
             program.compiler.Dep(os.path.join(lib_folder, 'tier1_i486.a')),
             program.compiler.Dep(os.path.join(lib_folder, 'mathlib_i486.a'))
         ]
+        if sdk.name == 'csgo':
+            program.compiler.postlink += [
+                os.path.join(sdk.path, 'lib', 'linux32', 'release', 'libprotobuf.a')
+            ]
 
         dynamic_libs = []
         if sdk.name in ['css', 'hl2dm', 'dods', 'tf2', 'sdk2013', 'bms', 'nucleardawn', 'l4d2', 'insurgency']:
             dynamic_libs = ['libtier0_srv.so', 'libvstdlib_srv.so']
+        elif sdk.name in ['l4d', 'blade', 'insurgency', 'csgo', 'dota']:
+            dynamic_libs = ['libtier0.so', 'libvstdlib.so']
         for library in dynamic_libs:
             source_path = os.path.join(lib_folder, library)
             output_path = os.path.join(program.localFolder, library)
@@ -76,55 +97,62 @@ def detectSdks():
             linker = make_linker(source_path, output_path)
             program.compiler.linkflags[0:0] = [program.compiler.Dep(library, linker)]
 
-detectSdks()
-program.compiler.defines += [
-    'stricmp=strcasecmp',
-    '_stricmp=strcasecmp',
-    '_snprintf=snprintf',
-    '_vsnprintf=vsnprintf',
-    'HAVE_STDINT_H',
-    'COMPILER_GCC',
-    '_LINUX',
-    'POSIX',
-    'GNUC'
-]
-program.compiler.cflags += [
-    '-pipe',
-    '-fno-strict-aliasing',
-    '-fvisibility=hidden',
-    '-Wall',
-    '-msse',
-    '-m32',
-    '-fPIC',
-    '-fno-rtti'
-]
-program.compiler.cxxflags += [
-    '-std=c++11',
-    '-fno-exceptions',
-    '-Wno-non-virtual-dtor',
-    '-Wno-overloaded-virtual',
-    '-fvisibility-inlines-hidden'
-]
-program.compiler.linkflags += [
-    program.compiler.Dep(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so')),
-    '-Wl,-rpath=$ORIGIN'
-]
+        self.config_gcc()
 
-program.compiler.includes += [
-    os.path.join(builder.sourcePath, 'lua', 'src'),
-    os.path.join(builder.sourcePath, 'src'),
-    os.path.join(builder.sourcePath, 'metamod-source', 'core'),
-    os.path.join(builder.sourcePath, 'metamod-source', 'core', 'sourcehook')
-]
+    # TODO: Custom suport will need to be added for non-gcc compilers ENHANCEMENT
+    def config_gcc(self):
+        program = self.binary
+        program.compiler.defines += [
+            'stricmp=strcasecmp',
+            '_stricmp=strcasecmp',
+            '_snprintf=snprintf',
+            '_vsnprintf=vsnprintf',
+            'HAVE_STDINT_H',
+            'COMPILER_GCC',
+            '_LINUX',
+            'POSIX',
+            'GNUC'
+        ]
+        program.compiler.cflags += [
+            '-pipe',
+            '-fno-strict-aliasing',
+            '-fvisibility=hidden',
+            '-Wall',
+            '-msse',
+            '-m32',
+            '-fPIC',
+            '-fno-rtti'
+        ]
+        program.compiler.cxxflags += [
+            '-std=c++11',
+            '-fno-exceptions',
+            '-Wno-non-virtual-dtor',
+            '-Wno-overloaded-virtual',
+            '-fvisibility-inlines-hidden'
+        ]
+        program.compiler.linkflags += [
+            program.compiler.Dep(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so')),
+            '-Wl,-rpath=$ORIGIN'
+        ]
 
-program.compiler.linkflags += ['-m32']
-if builder.options.debug:
-    program.compiler.cflags += ['-g', '-ggdb3']
+        program.compiler.includes += [
+            os.path.join(builder.sourcePath, 'lua', 'src'),
+            os.path.join(builder.sourcePath, 'src'),
+            os.path.join(builder.sourcePath, 'metamod-source', 'core'),
+            os.path.join(builder.sourcePath, 'metamod-source', 'core', 'sourcehook')
+        ]
 
-for root, dirnames, filenames in os.walk(os.path.join(builder.sourcePath, 'src')):
-    for filename in fnmatch.filter(filenames, '*.cpp'):
-        program.sources.append(os.path.join(root, filename))
-output = builder.Add(program)
+        program.compiler.linkflags += ['-m32']
+        if builder.options.debug:
+            program.compiler.cflags += ['-g', '-ggdb3']
+        else:
+            program.compiler.cflags += ['-O3']
+        program.sources += self.sources
+
+css = BuildConfig(PossibleSDKs['css'])
+css.config_for_sdk()
+
+output = builder.Add(css.binary)
 
 dist = builder.AddFolder('package')
 builder.AddCopy(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so'), os.path.join('package', 'libluajit-5.1.so.2'))

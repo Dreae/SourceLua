@@ -13,16 +13,16 @@ class CCommand
 public:
 	const char *ArgS()
 	{
-		return engine->Cmd_Args();
+		return g_Engine->Cmd_Args();
 	}
 	int ArgC()
 	{
-		return engine->Cmd_Argc();
+		return g_Engine->Cmd_Argc();
 	}
 
 	const char *Arg(int index)
 	{
-		return engine->Cmd_Argv(index);
+		return g_Engine->Cmd_Argv(index);
 	}
 };
 

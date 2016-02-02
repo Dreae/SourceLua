@@ -6,9 +6,13 @@
 class GameHooks : public SourceLuaBase {
 public:
   GameHooks() { };
-
+  int CommandClient() const;
+  void SetCommandClient(int client);
 public:
   void OnPluginStart();
+
+private:
+  int last_command_client;
 };
 
 extern GameHooks g_GameHooks;

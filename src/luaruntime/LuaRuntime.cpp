@@ -54,7 +54,8 @@ void LuaRuntime::register_std_lib() {
   lua_setfield(L, -2, "BaseDir");
 
   char *slDir = new char[PATH_MAX];
-  g_SMAPI->PathFormat(slDir, PATH_MAX, "%s/addons/sourcelua", gameDir); // TODO: Detect proper directory
+  strcpy(slDir, g_plPath);
+  slDir[strlen(slDir) - 4] = 0; // Chop of /bin #FIXME: Find better way?
   lua_pushstring(L, slDir);
   lua_setfield(L, -2, "SourceLuaDir");
 
