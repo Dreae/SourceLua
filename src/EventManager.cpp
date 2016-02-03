@@ -1,5 +1,6 @@
 #include "EventManager.hpp"
 #include "luaruntime/LuaRuntime.hpp"
+#include "Console.hpp"
 
 EventManager g_EventManager;
 
@@ -8,6 +9,5 @@ void EventManager::Hook_ClientCommand(edict_t *pEntity, const CCommand &args) {
     return;
   }
 
-  g_LuaRuntime.FireClientCommand(g_Engine->IndexOfEdict(pEntity), args);
-  RETURN_META(MRES_IGNORED);
+  RETURN_META(g_Console.DispatchClientCmd(pEntity, args));
 }
