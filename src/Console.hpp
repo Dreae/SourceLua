@@ -7,6 +7,8 @@ class SourceLuaConsole : public SourceLuaBase {
 public:
   SourceLuaConsole() { };
   META_RES DispatchClientCmd(edict_t *client, const CCommand &command);
+  void RegConCommand(const char* name, FnCommandCallback_t callback, const char *help, int flags);
+  void HookOrAddConCommand(const char* name, FnCommandCallback_t callback, const char *help, int flags);
 
 public:
   void OnPluginStart();

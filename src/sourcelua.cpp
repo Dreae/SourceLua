@@ -29,8 +29,8 @@ IFileSystem *g_iFileSystem;
 IVEngineServer *g_Engine;
 IPlayerInfoManager *g_iPlayerInfo;
 IServerPluginHelpers *g_iPluginHelpers;
-
 IServerPluginCallbacks *vsp_callbacks;
+ICvar *g_iCVar;
 
 const char *g_plPath;
 
@@ -46,6 +46,7 @@ bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_Engine, IVEngineServer, INTERFACEVERSION_VENGINESERVER);
 	GET_V_IFACE_CURRENT(GetServerFactory, g_iPlayerInfo, IPlayerInfoManager, INTERFACEVERSION_PLAYERINFOMANAGER);
 	GET_V_IFACE_CURRENT(GetEngineFactory, g_iPluginHelpers, IServerPluginHelpers, INTERFACEVERSION_ISERVERPLUGINHELPERS);
+	GET_V_IFACE_CURRENT(GetEngineFactory, g_iCVar, ICvar, CVAR_INTERFACE_VERSION);
 
 	GET_V_IFACE_ANY(GetServerFactory, server, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL);
 	GET_V_IFACE_ANY(GetServerFactory, g_iGameClients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS);
@@ -74,7 +75,11 @@ void SourceLua::OnVSPListening(IServerPluginCallbacks *iface) {
 bool SourceLua::Unload(char *error, size_t maxlen)
 {
 	SH_REMOVE_HOOK_STATICFUNC(IServerGameDLL, ServerActivate, server, Hook_ServerActivate, true);
-
+	SourceLuaBase *pLoader = SourceLuaBase::head;
+	while(pLoader) {
+		pLoader->OnPluginUnload();
+		pLoader = pLoader->pLoaderNext;
+	}
 	return true;
 }
 

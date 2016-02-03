@@ -5,6 +5,6 @@
 #include "lua.hpp"
 
 int lua_GetClientName(lua_State *L);
-int lua_register_Server(lua_State *L);
+void lua_register_Server(lua_State *L);
 
 #endif // _INCLUDE_LUARUNTIME_LUALIBS_SERVER

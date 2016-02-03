@@ -5,6 +5,8 @@
 
 SourceLuaConsole g_Console;
 
+SH_DECL_HOOK1_void(ConCommand, Dispatch, SH_NOATTRIB, 0, const CCommand &)
+
 void sourcelua_concmd(const CCommand &command) {
   int args = command.ArgC();
   if(args >= 2) {
@@ -35,4 +37,20 @@ META_RES SourceLuaConsole::DispatchClientCmd(edict_t *client, const CCommand &co
     g_LuaRuntime.FireClientCommand(g_Engine->IndexOfEdict(client), command);
     return MRES_IGNORED;
   }
+}
+
+void SourceLuaConsole::HookOrAddConCommand(const char* name, FnCommandCallback_t callback, const char *help, int flags) {
+  ConCommand *current = g_iCVar->FindCommand(name);
+  if(!current) {
+    CONMSG("Registering %s\n", name);
+    RegConCommand(name, callback, help, flags);
+  } else {
+    CONMSG("Command %s already exists, hooking\n", name);
+    SH_ADD_HOOK(ConCommand, Dispatch, current, SH_STATIC(callback), false);
+  }
+}
+
+void SourceLuaConsole::RegConCommand(const char* name, FnCommandCallback_t callback, const char *help, int flags) {
+  ConCommandBase *cmd = new ConCommand(name, callback, help, flags);
+  META_REGCVAR(cmd);
 }

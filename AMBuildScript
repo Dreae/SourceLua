@@ -132,10 +132,12 @@ class BuildConfig(object):
         ]
         program.compiler.linkflags += [
             program.compiler.Dep(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so')),
+            program.compiler.Dep(os.path.join(builder.sourcePath, 'curl', 'lib', '.libs', 'libcurl.so')),
             '-Wl,-rpath=$ORIGIN'
         ]
 
         program.compiler.includes += [
+            os.path.join(builder.sourcePath, 'curl', 'include'),
             os.path.join(builder.sourcePath, 'lua', 'src'),
             os.path.join(builder.sourcePath, 'src'),
             os.path.join(builder.sourcePath, 'metamod-source', 'core'),

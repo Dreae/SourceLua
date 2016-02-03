@@ -17,6 +17,7 @@
 
 #include "wrapper.hpp"
 #include "filesystem.h"
+#include "icvar.h"
 
 #if defined WIN32 && !defined snprintf
 #define snprintf _snprintf
@@ -52,6 +53,7 @@ public:
 		SourceLuaBase::head = this;
 	}
 	virtual void OnPluginStart() { }
+	virtual void OnPluginUnload() { }
 public:
 	SourceLuaBase *pLoaderNext;
 	static SourceLuaBase *head;
@@ -66,6 +68,8 @@ extern IVEngineServer *g_Engine;
 extern IPlayerInfoManager *g_iPlayerInfo;
 extern IServerPluginHelpers *g_iPluginHelpers;
 extern IServerPluginCallbacks *vsp_callbacks;
+extern ICvar *g_iCVar;
+
 extern const char *g_plPath;
 
 PLUGIN_GLOBALVARS();

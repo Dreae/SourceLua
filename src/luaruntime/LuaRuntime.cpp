@@ -1,5 +1,6 @@
 #include "luaruntime/LuaRuntime.hpp"
 #include "luaruntime/lualibs/Server.hpp"
+#include "luaruntime/lualibs/Curl.hpp"
 
 LuaRuntime g_LuaRuntime;
 
@@ -60,6 +61,7 @@ void LuaRuntime::register_std_lib() {
   lua_setfield(L, -2, "SourceLuaDir");
 
   lua_register_Server(L);
+  lua_register_Curl(L);
 }
 
 void LuaRuntime::LoadAddons() {
@@ -80,7 +82,7 @@ void LuaRuntime::LoadAddons() {
 }
 
 void LuaRuntime::LoadAddon(const char *addonDir) {
-  this->lua_chroot(addonDir, [this]() -> void {
+  this->lua_chroot(addonDir, [this]() -> void { // #TODO: Create addon context for per-addon managers
     lua_getglobal(this->L, "require");
     lua_pushstring(this->L, "index");
     if(lua_pcall(L, 1, 1, 0)) {
