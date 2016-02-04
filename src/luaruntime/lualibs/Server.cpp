@@ -9,16 +9,18 @@ int lua_GetClientName(lua_State *L) {
   return 1;
 }
 
-void lua_pushConCmd(const CCommand &command) {
-  CONMSG("Got lua registered command %s\n", command.Arg(0));
-  RETURN_META(MRES_SUPERCEDE); // #TODO: Forward command to lua local addon manager
+CommandCallback lua_pushConCmd(int pluginId) {
+  return [pluginId](const CCommand &cmd) -> META_RES {
+    CONMSG("Plugin %d got lua registered command %s\n", pluginId, cmd.Arg(0));
+    return MRES_SUPERCEDE;
+  }; // #TODO: Forward command to lua local addon manager
 }
 
 int lua_RegServerCmd(lua_State *L) {
   const char *name = lua_tostring(L, 1);
   const char *help = lua_tostring(L, 2);
   int flags = lua_tointeger(L, 3);
-  g_Console.HookOrAddConCommand(name, lua_pushConCmd, help, flags);
+  g_Console.HookOrAddConCommand(name, lua_pushConCmd(0), help, flags);
   return 0;
 }
 

@@ -38,7 +38,11 @@ DLL_EXPORT METAMOD_PLUGIN *CreateInterface_MMS(const MetamodVersionInfo *mvi, co
 	g_plPath = mli->pl_path;
 	return (METAMOD_PLUGIN *)&g_SourceLua;
 }
-PLUGIN_EXPOSE(SourceLua, g_SourceLua);
+
+ISmmAPI *g_SMAPI = NULL;
+ISmmPlugin *g_PLAPI = NULL;
+PluginId g_PLID = (PluginId)0;
+SourceHook::ISourceHook *g_SHPtr = NULL;
 bool SourceLua::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();

@@ -156,6 +156,7 @@ css.config_for_sdk()
 
 output = builder.Add(css.binary)
 
-dist = builder.AddFolder('package')
-builder.AddCopy(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so'), os.path.join('package', 'libluajit-5.1.so.2'))
+dist = builder.AddFolder('package/addons/sourcelua/bin')
+builder.AddCopy(os.path.join(builder.sourcePath, 'lua', 'src', 'libluajit.so'), os.path.join(dist.path, 'libluajit-5.1.so.2'))
+builder.AddCopy(os.path.join(builder.sourcePath, 'curl', 'lib', '.libs', 'libcurl.so.4.3.0'), os.path.join(dist.path, 'libcurl.so.4'))
 builder.AddCopy(output.binary, dist)
