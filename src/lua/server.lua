@@ -6,7 +6,10 @@ function server.RegClientCmd(name, callback)
 end
 
 function dispatchClientCommand(client, args)
-  cmds[args[1]](client, args)
+  callback = cmds[args[1]]
+  if callback ~= nil then
+    return callback(client, args)
+  end
 end
 
 SourceLua.Events.OnClientCommand(dispatchClientCommand)

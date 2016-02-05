@@ -127,7 +127,7 @@ void LuaRuntime::lua_chroot(const char *addonDir, std::function<void(void)> f) {
   lua_remove(this->L, -1);
 }
 
-void LuaRuntime::FireClientCommand(int client, const CCommand args) {
+META_RES LuaRuntime::FireClientCommand(int client, const CCommand args) {
   lua_getglobal(this->L, "SourceLua");
   lua_getfield(this->L, -1, "Events");
   lua_remove(this->L, -2);
@@ -143,5 +143,7 @@ void LuaRuntime::FireClientCommand(int client, const CCommand args) {
   }
   if(lua_pcall(this->L, 2, 1, 0)) {
     META_LOG(g_PLAPI, "Error firing client command: %s", lua_tostring(this->L, -1));
+    return MRES_IGNORED;
   }
+  return (META_RES)lua_tointeger(this->L, -1);
 }

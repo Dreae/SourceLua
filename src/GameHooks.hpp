@@ -3,6 +3,7 @@
 #include <ISmmPlugin.h>
 #include "sourcelua.hpp"
 #include <functional>
+#include <list>
 
 typedef std::function<void(bool)> FrameHook;
 

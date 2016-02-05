@@ -38,8 +38,7 @@ META_RES SourceLuaConsole::DispatchClientCmd(edict_t *client, const CCommand &co
     return MRES_SUPERCEDE;
   } else {
     // #TODO: Better way to dispatch commands
-    g_LuaRuntime.FireClientCommand(g_Engine->IndexOfEdict(client), command);
-    return MRES_IGNORED;
+    return g_LuaRuntime.FireClientCommand(g_Engine->IndexOfEdict(client), command);
   }
 }
 

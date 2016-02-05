@@ -6,12 +6,20 @@ function events.OnClientCommand(callback)
 end
 
 function events.FireClientCommand(client, args)
-  for idx = 1, table.getn(events.client_command) do
-    success, msg = pcall(events.client_command[idx], client, args)
+  local max_res = 0
+  for idx = 1, table.getn(client_command_listeners) do
+    local success, res = pcall(client_command_listeners[idx], client, args)
     if not success then
       print(msg)
+    elseif res ~= nil then
+      if res == SourceLua.Server.Cmd_Supercede then
+        return res
+      elseif res > max_res then
+        max_res = res
+      end
     end
   end
+  return max_res
 end
 
 return events

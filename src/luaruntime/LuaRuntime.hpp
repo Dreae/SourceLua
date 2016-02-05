@@ -12,7 +12,7 @@ public:
   void Init();
   void LoadAddons();
   void LoadAddon(const char *addonDir);
-  void FireClientCommand(int client, const CCommand args);
+  META_RES FireClientCommand(int client, const CCommand args);
   lua_State *L;
 
 public:

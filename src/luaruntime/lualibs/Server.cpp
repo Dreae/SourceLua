@@ -46,10 +46,23 @@ void lua_register_Server(lua_State *L) {
   lua_getglobal(L, "require");
   lua_pushstring(L, "server");
   lua_call(L, 1, 1);
+
   lua_pushcfunction(L, lua_GetClientName);
   lua_setfield(L, -2, "GetClientName");
+
   lua_pushcfunction(L, lua_RegServerCmd);
   lua_setfield(L, -2, "RegServerCmd");
+
+  lua_pushinteger(L, MRES_IGNORED);
+  lua_setfield(L, -2, "Cmd_Ignored");
+  lua_pushinteger(L, MRES_HANDLED);
+  lua_setfield(L, -2, "Cmd_Handled");
+  lua_pushinteger(L, MRES_SUPERCEDE);
+  lua_setfield(L, -2, "Cmd_Supercede");
+  lua_pushinteger(L, MRES_OVERRIDE);
+  lua_setfield(L, -2, "Cmd_Override");
+
+  // Save on SourceLua object; This pops server from the satck
   lua_setfield(L, -2, "Server");
   lua_remove(L, -2);
 }
