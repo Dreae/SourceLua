@@ -68,6 +68,7 @@ extern IVEngineServer *g_Engine;
 extern IPlayerInfoManager *g_iPlayerInfo;
 extern IServerPluginHelpers *g_iPluginHelpers;
 extern IServerPluginCallbacks *vsp_callbacks;
+extern IServerGameDLL *server;
 extern ICvar *g_iCVar;
 
 extern const char *g_plPath;

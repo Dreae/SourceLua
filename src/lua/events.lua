@@ -1,9 +1,8 @@
-local events = {
-  client_command = { }
-}
+local events = {}
 
+local client_command_listeners = {}
 function events.OnClientCommand(callback)
-  table.insert(events.client_command, callback)
+  table.insert(client_command_listeners, callback)
 end
 
 function events.FireClientCommand(client, args)

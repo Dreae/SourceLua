@@ -40,6 +40,25 @@ int LuaPrint(lua_State *L) {
   return 0;
 }
 
+int lua_traceback (lua_State *L) {
+  if (!lua_isstring(L, 1))  /* 'message' not a string? */
+    return 1;  /* keep it intact */
+  lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+  if (!lua_istable(L, -1)) {
+    lua_pop(L, 1);
+    return 1;
+  }
+  lua_getfield(L, -1, "traceback");
+  if (!lua_isfunction(L, -1)) {
+    lua_pop(L, 2);
+    return 1;
+  }
+  lua_pushvalue(L, 1);  /* pass error message */
+  lua_pushinteger(L, 2);  /* skip this function and traceback */
+  lua_call(L, 2, 1);  /* call debug.traceback */
+  return 1;
+}
+
 void LuaRuntime::register_std_lib() {
   lua_register(L, "print", LuaPrint);
 
@@ -83,9 +102,10 @@ void LuaRuntime::LoadAddons() {
 
 void LuaRuntime::LoadAddon(const char *addonDir) {
   this->lua_chroot(addonDir, [this]() -> void { // #TODO: Create addon context for per-addon managers
+    lua_pushcfunction(this->L, lua_traceback);
     lua_getglobal(this->L, "require");
     lua_pushstring(this->L, "index");
-    if(lua_pcall(L, 1, 1, 0)) {
+    if(lua_pcall(this->L, 1, 1, -3)) {
       META_LOG(g_PLAPI, "Error loading addon: %s", lua_tostring(this->L, -1));
     }
   });

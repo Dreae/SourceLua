@@ -23,6 +23,8 @@ private:
   char *basePath;
 };
 
+int lua_traceback(lua_State *L);
+
 extern LuaRuntime g_LuaRuntime;
 
 #endif //_INCLUDE_LUARUNTIME
