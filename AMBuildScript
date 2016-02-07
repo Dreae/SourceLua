@@ -6,19 +6,21 @@ import fnmatch
 
 
 class SDK(object):
-  def __init__(self, sdk, ext, aDef, name, dir):
-    self.folder = 'hl2sdk-' + dir
+  def __init__(self, sdk, ext, code, define, dir_):
+    self.folder = 'hl2sdk-' + dir_
     self.envvar = sdk
     self.ext = ext
-    self.code = aDef
-    self.define = name
-    self.name = dir
+    self.code = code
+    self.define = define
+    self.name = dir_
     self.path = os.path.join(builder.sourcePath, '../', self.folder)
 
 
 PossibleSDKs = {
     'css':  SDK('HL2SDKCSS', '2.css', '6', 'CSS', 'css'),
+    'l4d':  SDK('HL2SDKL4D', '2.l4d', '12', 'LEFT4DEAD', 'l4d'),
     'csgo': SDK('HL2SDKCSGO', '2.csgo', '20', 'CSGO', 'csgo'),
+    'dota': SDK('HL2SDKDOTA', '2.dota', '21', 'DOTA', 'dota'),
 }
 
 builder.DetectCxx()
@@ -35,6 +37,11 @@ class BuildConfig(object):
     def config_for_sdk(self):
         sdk = self.sdk
         program = self.binary
+
+        defines = ['SE_' + PossibleSDKs[k].define + '=' + PossibleSDKs[k].code for k in PossibleSDKs]
+        program.compiler.defines += defines
+        program.compiler.defines += ['SOURCE_ENGINE=' + sdk.code]
+
         paths = [
             ['public'],
             ['public', 'engine'],
@@ -59,7 +66,6 @@ class BuildConfig(object):
                     ['public', 'game', 'shared', 'csgo', 'protobuf']
                 ]
 
-            program.compiler.defines += ['SOURCE_ENGINE=' + sdk.code]
         if sdk.name in ['blade', 'insurgency', 'csgo', 'dota']:
             program.compiler.defines += ['NETWORK_VARS_ENABLED']
 

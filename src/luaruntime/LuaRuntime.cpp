@@ -73,7 +73,7 @@ void LuaRuntime::register_std_lib() {
   lua_pushstring(L, gameDir);
   lua_setfield(L, -2, "BaseDir");
 
-  char *slDir = new char[PATH_MAX];
+  char slDir[PATH_MAX];
   strcpy(slDir, g_plPath);
   slDir[strlen(slDir) - 4] = 0; // Chop of /bin #FIXME: Find better way?
   lua_pushstring(L, slDir);
@@ -87,8 +87,8 @@ void LuaRuntime::LoadAddons() {
   FileFindHandle_t findHandle;
   const char *filename = g_iFileSystem->FindFirstEx("addons/sourcelua/addons/*.*", "MOD", &findHandle);
   while(filename) {
-    char *addonDir = new char[PATH_MAX];
-    char *indexFile = new char[PATH_MAX];
+    char addonDir[PATH_MAX];
+    char indexFile[PATH_MAX];
     g_SMAPI->PathFormat(addonDir, PATH_MAX, "addons/sourcelua/addons/%s", filename);
     g_SMAPI->PathFormat(indexFile, PATH_MAX, "%s/index.lua", addonDir);
 
@@ -112,7 +112,7 @@ void LuaRuntime::LoadAddon(const char *addonDir) {
 }
 
 void LuaRuntime::lua_chroot(const char *addonDir, std::function<void(void)> f) {
-  char *path = new char[PATH_MAX * 2];
+  char path[PATH_MAX * 2];
   g_SMAPI->PathFormat(path, PATH_MAX * 2, "%s;%s/%s/?.lua", this->basePath, g_SMAPI->GetBaseDir(), addonDir);
   lua_getglobal(this->L, "package");
   lua_pushstring(this->L, path);

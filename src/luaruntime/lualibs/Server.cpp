@@ -1,5 +1,6 @@
 #include "luaruntime/lualibs/Server.hpp"
 #include "luaruntime/LuaRuntime.hpp"
+#include "iplayerinfo.h"
 #include "convar.h"
 #include "Console.hpp"
 
@@ -7,6 +8,12 @@
 int lua_GetClientName(lua_State *L) {
   IPlayerInfo *info = g_iPlayerInfo->GetPlayerInfo(g_Engine->PEntityOfEntIndex(lua_tointeger(L, 1)));
   lua_pushstring(L, info->GetName());
+  return 1;
+}
+
+int lua_GetClientNetworkID(lua_State *L) {
+  IPlayerInfo *info = g_iPlayerInfo->GetPlayerInfo(g_Engine->PEntityOfEntIndex(lua_tointeger(L, 1)));
+  lua_pushstring(L, info->GetNetworkIDString());
   return 1;
 }
 
@@ -49,6 +56,9 @@ void lua_register_Server(lua_State *L) {
 
   lua_pushcfunction(L, lua_GetClientName);
   lua_setfield(L, -2, "GetClientName");
+
+  lua_pushcfunction(L, lua_GetClientNetworkID);
+  lua_setfield(L, -2, "GetNetworkIDString");
 
   lua_pushcfunction(L, lua_RegServerCmd);
   lua_setfield(L, -2, "RegServerCmd");

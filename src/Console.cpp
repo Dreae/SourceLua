@@ -2,6 +2,7 @@
 #include "convar.h"
 #include "GameHooks.hpp"
 #include "luaruntime/LuaRuntime.hpp"
+#include "ChatManager.hpp"
 
 SourceLuaConsole g_Console;
 
