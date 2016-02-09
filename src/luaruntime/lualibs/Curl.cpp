@@ -8,7 +8,7 @@ size_t curl_read_cb(char *ptr, size_t size, size_t nmemb, void *userdata) {
   CurlReq *req = (CurlReq *)userdata;
   size_t newDataSize = size * nmemb;
   if(req->dataSize + newDataSize > req->bufferSize) {
-    size_t newSize = req->dataSize + newDataSize + 512;
+    size_t newSize = req->dataSize + newDataSize + (CURL_MAX_WRITE_SIZE / 2);
     char *buffer = (char *)malloc(newSize);
     memcpy(buffer, req->data, req->dataSize);
 
@@ -41,9 +41,8 @@ void LuaCurl::OnGameFrame(bool simulating) {
       CurlReq *req;
 
       curl_easy_getinfo(transfer, CURLINFO_PRIVATE, (char **)&req);
-      req->data[req->dataSize] = 0;
       lua_rawgeti(g_LuaRuntime.L, LUA_REGISTRYINDEX, req->callbackRef);
-      lua_pushstring(g_LuaRuntime.L, req->data);
+      lua_pushlstring(g_LuaRuntime.L, req->data, req->dataSize);
       lua_docall(g_LuaRuntime.L, 1, 0);
 
       free(req->data);
@@ -66,8 +65,8 @@ void LuaCurl::Get(const char *url, int callbackRef) {
   CurlReq *req = (CurlReq *)malloc(sizeof(CurlReq));
   req->callbackRef = callbackRef;
   req->dataSize = 0;
-  req->bufferSize = 512;
-  req->data = (char *)malloc(512);
+  req->bufferSize = CURL_MAX_WRITE_SIZE;
+  req->data = (char *)malloc(CURL_MAX_WRITE_SIZE);
 
   CURL *transfer = curl_easy_init();
   curl_easy_setopt(transfer, CURLOPT_URL, url);
