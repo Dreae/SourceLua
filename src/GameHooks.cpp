@@ -19,6 +19,10 @@ void GameHooks::OnPluginStart() {
   SH_ADD_HOOK(IServerGameDLL, GameFrame, server, SH_MEMBER(this, &GameHooks::GameFrame), false);
 }
 
+void GameHooks::AddFrameHook(FrameHook hook) {
+  frame_hooks.push_back(hook);
+}
+
 int GameHooks::CommandClient() const {
   return last_command_client;
 }
@@ -28,5 +32,7 @@ void GameHooks::SetCommandClient(int client) {
 }
 
 void GameHooks::GameFrame(bool simulating) {
-  
+  for(std::vector<FrameHook>::iterator it = frame_hooks.begin(); it != frame_hooks.end(); ++it) {
+    (*it)(simulating);
+  }
 }

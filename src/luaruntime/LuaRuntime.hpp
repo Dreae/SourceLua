@@ -24,6 +24,7 @@ private:
 };
 
 int lua_traceback(lua_State *L);
+inline int lua_docall(lua_State *L, int nargs, int ret);
 
 extern LuaRuntime g_LuaRuntime;
 
