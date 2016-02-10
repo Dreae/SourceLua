@@ -10,12 +10,13 @@ typedef struct {
   size_t bufferSize;
   size_t dataSize;
   int callbackRef;
+  struct curl_slist *headers;
 } CurlReq;
 
 class LuaCurl : public SourceLuaBase {
 public:
   LuaCurl() { };
-  void Get(const char *url, int callbackRef);
+  void Get(const char *url, CurlReq *req);
 
 public:
   void OnPluginStart();

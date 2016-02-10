@@ -46,6 +46,10 @@ void LuaCurl::OnGameFrame(bool simulating) {
       lua_docall(g_LuaRuntime.L, 1, 0);
 
       free(req->data);
+      if(req->headers) {
+        curl_slist_free_all(req->headers);
+      }
+
       free(req);
 
       curl_easy_cleanup(transfer);
@@ -57,29 +61,71 @@ void LuaCurl::OnGameFrame(bool simulating) {
   }
 }
 
-void LuaCurl::Get(const char *url, int callbackRef) {
+void LuaCurl::Get(const char *url, CurlReq *req) {
   if(!mCurlHandle) {
     mCurlHandle = curl_multi_init();
   }
-
-  CurlReq *req = (CurlReq *)malloc(sizeof(CurlReq));
-  req->callbackRef = callbackRef;
-  req->dataSize = 0;
-  req->bufferSize = CURL_MAX_WRITE_SIZE;
-  req->data = (char *)malloc(CURL_MAX_WRITE_SIZE);
 
   CURL *transfer = curl_easy_init();
   curl_easy_setopt(transfer, CURLOPT_URL, url);
   curl_easy_setopt(transfer, CURLOPT_WRITEFUNCTION, curl_read_cb);
   curl_easy_setopt(transfer, CURLOPT_WRITEDATA, req);
   curl_easy_setopt(transfer, CURLOPT_PRIVATE, req);
+
+  if(req->headers) {
+    curl_easy_setopt(transfer, CURLOPT_HTTPHEADER, req->headers);
+  }
+
   curl_multi_add_handle(mCurlHandle, transfer);
 }
 
-int lua_Curl_Get(lua_State *L) {
+void parse_req_options(lua_State *L, CurlReq *req) {
   lua_pushvalue(L, 2);
-  int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-  g_LuaCurl.Get(lua_tostring(L, 1), ref);
+
+  lua_getfield(L, -1, "headers");
+  if(!lua_isnil(L, -1) && lua_istable(L, -1)) {
+    struct curl_slist *headers = NULL;
+    lua_pushnil(L);
+    while(lua_next(L, -2)) {
+      size_t keyLen;
+      const char *key = lua_tolstring(L, -2, &keyLen);
+      size_t valueLen;
+      const char *value = lua_tolstring(L, -1, &valueLen);
+      size_t maxLen = keyLen + valueLen + 8;
+      char *buffer = (char *)malloc(maxLen);
+
+      g_SMAPI->Format(buffer, maxLen, "%s: %s", key, value);
+      headers = curl_slist_append(headers, buffer);
+
+      free(buffer);
+      lua_pop(L, 1);
+    }
+
+    req->headers = headers;
+  }
+  lua_remove(L, -1);
+}
+
+CurlReq *new_req() {
+  CurlReq *req = (CurlReq *)malloc(sizeof(CurlReq));
+  req->callbackRef = 0;
+  req->dataSize = 0;
+  req->bufferSize = CURL_MAX_WRITE_SIZE;
+  req->data = (char *)malloc(CURL_MAX_WRITE_SIZE);
+  req->headers = NULL;
+}
+
+int lua_Curl_Get(lua_State *L) {
+  CurlReq *req = new_req();
+  if(lua_gettop(L) == 3) {
+    parse_req_options(L, req);
+    lua_pushvalue(L, 3);
+    req->callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
+  } else {
+    lua_pushvalue(L, 2);
+    req->callbackRef = luaL_ref(L, LUA_REGISTRYINDEX);
+  }
+  g_LuaCurl.Get(lua_tostring(L, 1), req);
 
   return 0;
 }
